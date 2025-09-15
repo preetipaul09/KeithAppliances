@@ -1,0 +1,44 @@
+2025-09-15 17:04:38,392:__main__:Selenium triggered
+2025-09-15 17:04:56,901:__main__:New Rotated IP: 223.178.209.171
+2025-09-15 17:04:57,161:__main__:Driver not found
+2025-09-15 17:05:01,098:__main__:No products found for https://www.keithsappliances.com/catalog/special/manufacturer/ge%20profile.
+2025-09-15 17:06:20,165:__main__:Selenium triggered
+2025-09-15 17:06:38,560:__main__:New Rotated IP: 223.178.209.171
+2025-09-15 17:07:34,998:__main__:Checking for 'Press & Hold' CAPTCHA...
+2025-09-15 17:07:37,306:__main__:Found 8 iframes on the page.
+2025-09-15 17:07:37,307:__main__:Iframe 0 is WebElement: True
+2025-09-15 17:07:37,327:__main__:Iframe 0: title='UserWay Accessibility Menu', src=''
+2025-09-15 17:07:37,328:__main__:Iframe 1 is WebElement: True
+2025-09-15 17:07:37,345:__main__:Iframe 1: title='reCAPTCHA', src='https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcoRgEfAAAAAAsgj6BRys3IVw55AXC6_4sIJf7P&co=aHR0cHM6Ly93d3cua2VpdGhzYXBwbGlhbmNlcy5jb206NDQz&hl=en&v=44LqIOwVrGhp2lJ3fODa493O&size=normal&anchor-ms=20000&execute-ms=15000&cb=jws61kxy6tj3'
+2025-09-15 17:07:37,345:__main__:Iframe 2 is WebElement: True
+2025-09-15 17:07:37,363:__main__:Iframe 2: title='', src=''
+2025-09-15 17:07:37,363:__main__:Iframe 3 is WebElement: True
+2025-09-15 17:07:37,380:__main__:Iframe 3: title='empty', src='about:blank'
+2025-09-15 17:07:37,380:__main__:Iframe 4 is WebElement: True
+2025-09-15 17:07:37,396:__main__:Iframe 4: title='', src=''
+2025-09-15 17:07:37,397:__main__:Iframe 5 is WebElement: True
+2025-09-15 17:07:37,412:__main__:Iframe 5: title='', src='javascript:false'
+2025-09-15 17:07:37,412:__main__:Iframe 6 is WebElement: True
+2025-09-15 17:07:37,427:__main__:Iframe 6: title='onetrust-text-resize', src=''
+2025-09-15 17:07:37,428:__main__:Iframe 7 is WebElement: True
+2025-09-15 17:07:37,444:__main__:Iframe 7: title='recaptcha challenge expires in two minutes', src='https://www.google.com/recaptcha/api2/bframe?hl=en&v=44LqIOwVrGhp2lJ3fODa493O&k=6LcoRgEfAAAAAAsgj6BRys3IVw55AXC6_4sIJf7P&bft=0dAFcWeA4WCSjUnohQ2XXJ-YMuwEmPpModOmh9pBO7Vf3F46h_RY-7MdCCse6Jbb3TLeicQ6GcrkAo6E7xQkyxqR-sMEG2dAmnuA'
+2025-09-15 17:07:37,598:__main__:No CAPTCHA prompt detected — continuing scrape.
+2025-09-15 17:07:44,984:__main__:No products found on page 1 for https://www.keithsappliances.com/catalog/special/manufacturer/ge%20profile.
+2025-09-15 17:07:49,307:__main__:No products found for https://www.keithsappliances.com/catalog/special/manufacturer/ge%20profile.
+2025-09-15 17:07:49,308:__main__:Total 0 products found for https://www.keithsappliances.com/catalog/special/manufacturer/ge%20profile.
+2025-09-15 17:07:49,310:__main__:Finished ThreadMain in 89.14 second(s)
+2025-09-15 17:12:29,148:__main__:Selenium triggered
+2025-09-15 17:12:47,043:__main__:New Rotated IP: 223.178.209.171
+2025-09-15 17:13:46,173:__main__:Checking for 'Press & Hold' CAPTCHA...
+2025-09-15 17:13:48,402:__main__:Found 5 iframes on the page.
+2025-09-15 17:13:48,402:__main__:Iframe 0 is WebElement: True
+2025-09-15 17:13:48,420:__main__:Iframe 0: title='UserWay Accessibility Menu', src=''
+2025-09-15 17:13:48,421:__main__:Iframe 1 is WebElement: True
+2025-09-15 17:13:48,437:__main__:Iframe 1: title='empty', src='about:blank'
+2025-09-15 17:13:48,437:__main__:Iframe 2 is WebElement: True
+2025-09-15 17:13:48,452:__main__:Iframe 2: title='', src=''
+2025-09-15 17:13:48,452:__main__:Iframe 3 is WebElement: True
+2025-09-15 17:13:48,467:__main__:Iframe 3: title='onetrust-text-resize', src=''
+2025-09-15 17:13:48,467:__main__:Iframe 4 is WebElement: True
+2025-09-15 17:13:48,481:__main__:Iframe 4: title='', src='javascript:false'
+2025-09-15 17:13:48,675:__main__:No CAPTCHA prompt detected — continuing scrape.
