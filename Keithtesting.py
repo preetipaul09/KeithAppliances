@@ -7,6 +7,8 @@ import logging
 from bs4 import BeautifulSoup
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import FirefoxOptions
 from datetime import datetime, timedelta, date
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -36,6 +38,7 @@ import json
 
 from modules.saveRanks import commence as evalRanking
 from modules.runTimeSecrets import HOST, DB, USER, PASS, HOST2, DB2, USER2, PASS2, HOST3, DB3, USER3, PASS3
+# HOST, DB, USER, PASS = '157.245.132.95','kmpnthbyjc','kmpnthbyjc','7s4TGvU4VC'
 
 # HOST, DB, USER, PASS = "162.243.170.201", "wfnpyvxqtp", "wfnpyvxqtp", "tvv2kGXHjE"
 # # HOST2, DB2, USER2, PASS2 = "162.243.170.201","wfnpyvxqtp","wfnpyvxqtp","tvv2kGXHjE"
@@ -459,47 +462,47 @@ def fetch_product_data(product_url,vendor_id):
         #     temp["brand_name"] = None
 
         # ✅ Extract MPN
-        mpn_part = re.sub(r"-\d+$", "", url.split("/product/")[-1])  # remove numeric SKU
-        url_tokens = mpn_part.split("-")
+        # mpn_part = re.sub(r"-\d+$", "", url.split("/product/")[-1])  # remove numeric SKU
+        # url_tokens = mpn_part.split("-")
 
-        # Normalize product name → lowercase alphanumeric tokens
-        name_tokens = re.sub(r'[^A-Za-z0-9]+', ' ', temp['product_name']).lower().split()
+        # # Normalize product name → lowercase alphanumeric tokens
+        # name_tokens = re.sub(r'[^A-Za-z0-9]+', ' ', temp['product_name']).lower().split()
 
-        # Merge adjacent digits into single tokens (e.g. "4" "3" -> "43")
-        normalized_name_tokens = []
-        i = 0
-        while i < len(name_tokens):
-            if name_tokens[i].isdigit():
-                num = name_tokens[i]
-                while i + 1 < len(name_tokens) and name_tokens[i+1].isdigit():
-                    num += name_tokens[i+1]
-                    i += 1
-                normalized_name_tokens.append(num)
-            else:
-                normalized_name_tokens.append(name_tokens[i])
-            i += 1
+        # # Merge adjacent digits into single tokens (e.g. "4" "3" -> "43")
+        # normalized_name_tokens = []
+        # i = 0
+        # while i < len(name_tokens):
+        #     if name_tokens[i].isdigit():
+        #         num = name_tokens[i]
+        #         while i + 1 < len(name_tokens) and name_tokens[i+1].isdigit():
+        #             num += name_tokens[i+1]
+        #             i += 1
+        #         normalized_name_tokens.append(num)
+        #     else:
+        #         normalized_name_tokens.append(name_tokens[i])
+        #     i += 1
 
-        # Build MPN by taking URL tokens not in product name
-        mpn_tokens = [
-            t for t in url_tokens 
-            if t.lower() not in normalized_name_tokens and t.lower() != temp['brand_name'].lower()
-        ]
+        # # Build MPN by taking URL tokens not in product name
+        # mpn_tokens = [
+        #     t for t in url_tokens 
+        #     if t.lower() not in normalized_name_tokens and t.lower() != temp['brand_name'].lower()
+        # ]
 
-        temp["product_mpn"] = "-".join(mpn_tokens).upper() if mpn_tokens else None
+        # temp["product_mpn"] = "-".join(mpn_tokens).upper() if mpn_tokens else None
 
         # --- fallback: meta[name="keywords"] ---
-        if not temp["product_mpn"]:
-            try:
-                meta_keywords = driver.find_element(By.CSS_SELECTOR, 'meta[name="keywords"]').get_attribute("content")
-                if meta_keywords:
-                    # Pick first token with letters+digits (likely the MPN)
-                    for token in meta_keywords.split(","):
-                        token = token.strip()
-                        if re.search(r"[A-Za-z]+\d+", token):
-                            temp["product_mpn"] = token.upper()
-                            break
-            except NoSuchElementException:
-                temp["product_mpn"] = None
+        # if not temp["product_mpn"]:
+        try:
+            meta_keywords = driver.find_element(By.CSS_SELECTOR, 'meta[name="keywords"]').get_attribute("content")
+            if meta_keywords:
+                # Pick first token with letters+digits (likely the MPN)
+                for token in meta_keywords.split(","):
+                    token = token.strip()
+                    if re.search(r"[A-Za-z]+\d+", token):
+                        temp["product_mpn"] = token.upper()
+                        break
+        except NoSuchElementException:
+            temp["product_mpn"] = None
 
         print("////////////////////////////////////////////////")
         print(f"Brand: {temp['brand_name']} | MPN: {temp['product_mpn']} | SKU: {temp['vendor_sku']}")
@@ -545,23 +548,42 @@ def fetch_product_data(product_url,vendor_id):
         temp2['vendorprice_price'] = base_price
         temp2["vendorprice_finalprice"] = base_price
 
-        try:
-            offers = []
-            offer_items = driver.find_elements(By.CSS_SELECTOR, "ul.jss281 li.jss282")
-            for item in offer_items:
-                ps = item.find_elements(By.TAG_NAME, "p")
-                if len(ps) >= 2:
-                    buy_text = ps[0].text.strip()
-                    save_text = ps[1].text.strip()
-                    if buy_text and save_text:
-                        offers.append(f"{buy_text} {save_text}")
-            temp["promotions"] = offers if offers else None
-        except Exception as e:
-            temp["promotions"] = None
-            logger.debug(f"No promotions found: {e}")
-        
-        if temp.get("promotions"):
-            temp["promotions"] = " , ".join(temp["promotions"])
+        # try:
+        #     offers = []
+
+        #     # 1. Click the rebate "Details" button
+        #     details_button = WebDriverWait(driver, 5).until(
+        #         EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="Show more details on this rebate"]'))
+        #     )
+        #     details_button.click()
+
+        #     # 2. Wait for the rebate dialog to appear
+        #     rebate_ul = WebDriverWait(driver, 5).until(
+        #         EC.presence_of_element_located((By.CSS_SELECTOR, "body div.MuiDrawer-root.MuiDrawer-modal ul.jss709"))
+        #     )
+
+        #     # 3. Scrape all li items from the popup
+        #     items = rebate_ul.find_elements(By.TAG_NAME, "li")
+        #     for item in items:
+        #         text = item.text.strip()
+        #         if text:
+        #             offers.append(text)
+
+        #     temp2["buy_more_save_more_text"] = offers if offers else None
+
+        #     # 4. Close the rebate popup (optional, if needed for next product)
+        #     try:
+        #         close_btn = driver.find_element(By.CSS_SELECTOR, "button[aria-label='Close']")
+        #         close_btn.click()
+        #     except:
+        #         pass
+
+        # except Exception as e:
+        #     temp2["buy_more_save_more_text"] = None
+        #     logger.debug(f"No rebate details found: {e}")
+                
+        # if temp2.get("buy_more_save_more_text"):
+        #     temp2["buy_more_save_more_text"] = " ; ".join(temp2["buy_more_save_more_text"])
 
 
         # ✅ Extra metadata
@@ -592,24 +614,24 @@ def fetch_product_data(product_url,vendor_id):
         print(temp2)
         print("--------------------------------------------------------")
 
-        # product_id, vendor_product_id = insertIntoMsp(temp, vendor_id)
-        # print("--------------------------------------------------------")
-        # print(product_id, vendor_product_id)
-        # print("--------------------------------------------------------")
-        # if temp2['vendorprice_price'] is None:
-        #     logger.debug(f"vendorprice_price not found for product ID {product_id}")
-        #     with open("priceNotFound.txt", "a") as file:
-        #         file.write(f"{vendor_product_id}\n")
-        #     return
-        # elif isinstance(temp2['vendorprice_price'], str):
-        #     price_lower = temp2['vendorprice_price'].lower()
-        #     if 'best price' in price_lower or 'price unavailable' in price_lower or 'call for best price' in price_lower:
-        #         logger.debug(f"vendorprice_price not found!! - Price requires contact: {temp2['vendorprice_price']}")
-        #         return
-        #     else:
-        #         insertall(product_id, vendor_product_id, temp2, vendor_id)
-        #         evalRanking(vendor_id , product_id)
-        # return temp, temp2
+        product_id, vendor_product_id = insertIntoMsp(temp, vendor_id)
+        print("--------------------------------------------------------")
+        print(product_id, vendor_product_id)
+        print("--------------------------------------------------------")
+        if temp2['vendorprice_price'] is None:
+            logger.debug(f"vendorprice_price not found for product ID {product_id}")
+            with open("priceNotFound.txt", "a") as file:
+                file.write(f"{vendor_product_id}\n")
+            return
+        elif isinstance(temp2['vendorprice_price'], str):
+            price_lower = temp2['vendorprice_price'].lower()
+            if 'best price' in price_lower or 'price unavailable' in price_lower or 'call for best price' in price_lower:
+                logger.debug(f"vendorprice_price not found!! - Price requires contact: {temp2['vendorprice_price']}")
+                return
+            else:
+                insertall(product_id, vendor_product_id, temp2, vendor_id)
+                evalRanking(vendor_id , product_id)
+        return temp, temp2
     except Exception as e:
         logger.error(f"An error occurred while fetching product data: {e}")
     finally:
@@ -905,7 +927,7 @@ def vendorTempPricing(vendor_product_id, temp):
                 logger.info(f"Record Updated for vendor_product_id ({vendor_product_id}) and source ({temp['source']})")
             else:
                 insertQuery = """INSERT INTO TempVendorPricing (vendor_product_id, vendorprice_price, vendorprice_finalprice, vendorprice_date, product_condition, source, is_rp_calculated, is_member, scraped_by_system) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)"""
                 values = (vendor_product_id, temp['vendorprice_price'], temp['vendorprice_finalprice'], dateTime, temp['product_condition'], temp['source'], '2', '0', temp['scraped_by_system'])
                 this.execute(insertQuery, values)
                 conn.commit()
@@ -1111,30 +1133,30 @@ if __name__ == "__main__":
     ]
     vendor_url = "https://www.keithsappliances.com/"
     domain = "https://www.keithsappliances.com"
-    vendor_id = 20233
+    vendor_id = 20233 #17672 #20233
     # try:
         # driver = triggerSeleniumOpera(useVPN=False, checkIP=True)
         
         # if driver:
-    for cat_url in catUrllist:
-        product_urls = getAllProUrl(cat_url)
-        if not product_urls:
-            logger.debug(f"No products found for {cat_url}.")
-        # Use multiprocessing to fetch data for all product URLs in parallel
-        logger.debug(f"Total {len(product_urls)} products found for {cat_url}.")
+    # for cat_url in catUrllist:
+    #     product_urls = getAllProUrl(cat_url)
+    #     if not product_urls:
+    #         logger.debug(f"No products found for {cat_url}.")
+    #     # Use multiprocessing to fetch data for all product URLs in parallel
+    #     logger.debug(f"Total {len(product_urls)} products found for {cat_url}.")
     #             # for product_url in product_urls:
     #             #     open_url_human_like(product_url)
                 #     fetch_product_data(driver, product_url, vendor_id)
     # try:
         # driver = triggerSelenium(checkIP=True)
         # time.sleep(5)
-    # product_urls = read_product_urls_from_file("productUrls20233.txt")
-    # if not product_urls:
-    #     logger.debug("No products found in productUrls.txt.")
-    # else:
-    #     logger.debug(f"Total {len(product_urls)} products found in productUrls.txt.")
-    #     for product_url in product_urls:
-    #         fetch_product_data(product_url,vendor_id)
+    product_urls = read_product_urls_from_file("productUrls-GE-Profile.txt")
+    if not product_urls:
+        logger.debug("No products found in productUrls.txt.")
+    else:
+        logger.debug(f"Total {len(product_urls)} products found in productUrls.txt.")
+        for product_url in product_urls:
+            fetch_product_data(product_url,vendor_id)
     # finally:
     #     if driver:
     #         driver.quit()
