@@ -491,9 +491,9 @@ def fetch_product_data(product_url,vendor_id):
         # temp["product_mpn"] = "-".join(mpn_tokens).upper() if mpn_tokens else None
 
         # --- fallback: meta[name="keywords"] ---
-        # if not temp["product_mpn"]:
+        # if not temp["product_mpn"]: meta[property="product:retailer_item_id"]
         try:
-            meta_keywords = driver.find_element(By.CSS_SELECTOR, 'meta[name="keywords"]').get_attribute("content")
+            meta_keywords = driver.find_element(By.CSS_SELECTOR, 'meta[property="product:retailer_item_id"]').get_attribute("content")
             if meta_keywords:
                 # Pick first token with letters+digits (likely the MPN)
                 for token in meta_keywords.split(","):
