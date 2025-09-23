@@ -773,20 +773,22 @@ def fetch_product_data(product_url,vendor_id):
 
         base_price = None
         product_msrp = None
+        page_price = None
         try:
-            Check_product = driver.find_element(By.CSS_SELECTOR,'div[style="color:#000000"]')
+            # Check_product = driver.find_element(By.CSS_SELECTOR,'div[style="color:#000000"]')
+            Check_product = driver.find_element(By.CSS_SELECTOR,'div.MuiTypography-root.MuiTypography-h5')
             if Check_product:
                 # wait until add-to-cart is clickable
                 Cart_button = WebDriverWait(driver, 10).until(
                     EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-avb-product-add-to-cart-btn]"))
                 )
                 # ✅ MSRP
-                productMsrp = driver.find_element(By.CSS_SELECTOR, 'div#product-content')
-                msrp_text = productMsrp.text.strip()
-                if "-" in msrp_text:
+                page_element = driver.find_element(By.CSS_SELECTOR, 'div#product-content')
+                page_price = page_element.text.replace("Rs.", "").replace("$", "").replace(",", "").replace(r"\ea", "").strip()
+                if "-" in page_price:
                     print(f"Skipping product due to MSRP range: {msrp_text}")
                     return None, None
-                product_msrp = msrp_text.replace("Rs.", "").replace("$", "").replace(",", "").replace(r"\ea", "").strip()
+                
                 # scroll & click
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", Cart_button)
                 driver.execute_script("arguments[0].click();", Cart_button)
@@ -810,10 +812,13 @@ def fetch_product_data(product_url,vendor_id):
                         .strip()
                     )
                     print(f"✅ Got popup price: {base_price}")
+
                 except TimeoutException:
                     print("⚠️ Popup price not found, checking fallback...")
                     base_price = None
                     product_msrp = None
+                    page_price = None
+                # temp2['In_cart_price'] = '1'     
         except Exception as e:
             print(f"❌ Add to Cart button not clickable: {e}")
             # fallback to product page price
@@ -845,7 +850,12 @@ def fetch_product_data(product_url,vendor_id):
         # 👇 keep scraper alive (important if this is in a loop)
         if base_price is None:
             print("⚠️ No price collected for this product, continuing...")
-
+        
+        temp2['product_page_price'] = page_price
+        if page_price:
+            temp2['In_cart_price'] = '1'
+        else:
+            temp2['In_cart_price'] = '0'
         # assign values
         temp2['vendorprice_price'] = base_price
         temp2['vendorprice_finalprice'] = base_price
@@ -1223,16 +1233,16 @@ def vendorTempPricing(vendor_product_id, temp):
                     this.execute(updateQuery, values)
                     conn.commit()
                     logger.info(f"is_price_changed set 1 for vendor_product_id ({vendor_product_id}).")
-                updateQuery = """UPDATE TempVendorPricing SET vendorprice_price = %s, vendorprice_finalprice = %s, vendorprice_date = %s, product_condition = %s, is_rp_calculated = %s, is_member = %s, scraped_by_system = %s
+                updateQuery = """UPDATE TempVendorPricing SET vendorprice_price = %s, vendorprice_finalprice = %s, vendorprice_date = %s, vendorprice_stock_text=%s,product_page_price = %s, In_cart_price = %s, product_condition = %s, is_rp_calculated = %s, is_member = %s, scraped_by_system = %s
                     WHERE vendor_product_id = %s AND source = %s"""
-                values = (temp['vendorprice_price'], temp['vendorprice_finalprice'], dateTime, temp['product_condition'], '2', '0', temp['scraped_by_system'], vendor_product_id, temp['source'])
+                values = (temp['vendorprice_price'], temp['vendorprice_finalprice'], dateTime,temp['vendorprice_stock_text'], temp['product_page_price'],temp['In_cart_price'], temp['product_condition'], '2', '0', temp['scraped_by_system'], vendor_product_id, temp['source'])
                 this.execute(updateQuery, values)
                 conn.commit()
                 logger.info(f"Record Updated for vendor_product_id ({vendor_product_id}) and source ({temp['source']})")
             else:
-                insertQuery = """INSERT INTO TempVendorPricing (vendor_product_id, vendorprice_price, vendorprice_finalprice, vendorprice_date, product_condition, source, is_rp_calculated, is_member, scraped_by_system) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)"""
-                values = (vendor_product_id, temp['vendorprice_price'], temp['vendorprice_finalprice'], dateTime, temp['product_condition'], temp['source'], '2', '0', temp['scraped_by_system'])
+                insertQuery = """INSERT INTO TempVendorPricing (vendor_product_id, vendorprice_price, vendorprice_finalprice, vendorprice_date, vendorprice_stock_text, product_page_price, In_cart_price, product_condition, source, is_rp_calculated, is_member, scraped_by_system) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                values = (vendor_product_id, temp['vendorprice_price'], temp['vendorprice_finalprice'], dateTime, temp['vendorprice_stock_text'], temp['product_page_price'], temp['In_cart_price'], temp['product_condition'], temp['source'], '2', '0', temp['scraped_by_system'])
                 this.execute(insertQuery, values)
                 conn.commit()
                 logger.info(f"Record Inserted for vendor_product_id ({vendor_product_id}) and source ({temp['source']})")
@@ -1241,7 +1251,7 @@ def vendorTempPricing(vendor_product_id, temp):
     finally:
         if conn.is_connected():
             conn.close()
-            this.close() 
+            this.close()
 
 def get_table_structure(host, db, user, password, table_name):
     """Retrieve column details from a table, preserving the column order."""
